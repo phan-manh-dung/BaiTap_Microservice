@@ -1,6 +1,9 @@
-const { User, Account, Role } = require('../model/UserModel');
-const bcrypt = require('bcryptjs');
-const { generalAccessToken, refreshAccessToken } = require('../service/JwtServices');
+const { User, Account, Role } = require("../model/UserModel");
+const bcrypt = require("bcryptjs");
+const {
+  generalAccessToken,
+  refreshAccessToken,
+} = require("../service/JwtServices");
 
 const createUser = async (newUser) => {
   return new Promise(async (resolve, reject) => {
@@ -9,19 +12,19 @@ const createUser = async (newUser) => {
       const checkUser = await User.findOne({ name });
       if (checkUser) {
         return resolve({
-          status: 'ERR_USER',
-          message: 'The name user is already in use',
+          status: "ERR_USER",
+          message: "The name user is already in use",
         });
       }
 
       const hash = bcrypt.hashSync(String(password), 10);
 
       // Tìm role CUSTOMER
-      const customerRole = await Role.findOne({ name: 'CUSTOMER' });
+      const customerRole = await Role.findOne({ name: "CUSTOMER" });
       if (!customerRole) {
         return resolve({
-          status: 'ERR',
-          message: 'Role CUSTOMER does not exist',
+          status: "ERR",
+          message: "Role CUSTOMER does not exist",
         });
       }
 
@@ -42,12 +45,12 @@ const createUser = async (newUser) => {
       await user.save(); // Lưu lại user với account mới
 
       resolve({
-        status: 'OK',
-        message: 'User created successfully',
+        status: "OK",
+        message: "User created successfully",
         data: user,
       });
     } catch (e) {
-      console.error('Error in service:', e);
+      console.error("Error in service:", e);
       reject(e);
     }
   });
@@ -57,19 +60,19 @@ const loginUser = (userLogin) => {
   return new Promise(async (resolve, reject) => {
     const { name, password } = userLogin;
     try {
-      const checkUser = await User.findOne({ name }).populate('account');
+      const checkUser = await User.findOne({ name }).populate("account");
       if (!checkUser) {
         return resolve({
-          status: 'ERR USER NOT IN THE DATABASE',
-          message: 'User is not in the database',
+          status: "ERR USER NOT IN THE DATABASE",
+          message: "User is not in the database",
         });
       }
 
       const comparePassword = bcrypt.compareSync(password, checkUser.password);
       if (!comparePassword) {
         return resolve({
-          status: 'ERR_PASSWORD',
-          message: 'The password is incorrect',
+          status: "ERR_PASSWORD",
+          message: "The password is incorrect",
         });
       }
 
@@ -85,14 +88,14 @@ const loginUser = (userLogin) => {
       });
 
       resolve({
-        status: 'OK',
-        message: 'Success',
+        status: "OK",
+        message: "Success",
         userId: checkUser.id,
         access_token,
         refresh_token,
       });
     } catch (e) {
-      console.error('Error in loginUser service:', e);
+      console.error("Error in loginUser service:", e);
       reject(e);
     }
   });
@@ -103,8 +106,8 @@ const getAllUser = () => {
     try {
       const allUser = await User.find();
       resolve({
-        status: 'OK',
-        message: 'Get all Success',
+        status: "OK",
+        message: "Get all Success",
         data: allUser,
       });
     } catch (e) {
@@ -119,8 +122,8 @@ const deleteUser = (id) => {
       const user = await User.findById(id);
       if (!user) {
         return resolve({
-          status: 'ERR',
-          message: 'The user does not exist',
+          status: "ERR",
+          message: "The user does not exist",
         });
       }
 
@@ -129,8 +132,8 @@ const deleteUser = (id) => {
       }
       await User.findByIdAndDelete(id);
       resolve({
-        status: 'OK',
-        message: 'Delete User Success',
+        status: "OK",
+        message: "Delete User Success",
       });
     } catch (e) {
       reject(e);
@@ -142,7 +145,7 @@ const updateUser = async (id, data) => {
   try {
     // Kiểm tra nếu data trống thì không cập nhật
     if (!Object.keys(data).length) {
-      return { status: 'ERROR', message: 'No data to update' };
+      return { status: "ERROR", message: "No data to update" };
     }
 
     const updatedUser = await User.findByIdAndUpdate(id, data, {
@@ -151,13 +154,13 @@ const updateUser = async (id, data) => {
     });
 
     if (!updatedUser) {
-      return { status: 'ERROR', message: 'User not found' };
+      return { status: "ERROR", message: "User not found" };
     }
 
-    return { status: 'OK', message: 'SUCCESS', data: updatedUser };
+    return { status: "OK", message: "SUCCESS", data: updatedUser };
   } catch (error) {
-    console.error('Error updating user:', error);
-    return { status: 'ERROR', message: 'Internal server error' };
+    console.error("Error updating user:", error);
+    return { status: "ERROR", message: "Internal server error" };
   }
 };
 
@@ -169,13 +172,13 @@ const getDetailsUser = (id) => {
       });
       if (user === null) {
         resolve({
-          status: 'ERR',
-          message: 'The user is not exists getDetail',
+          status: "ERR",
+          message: "The user is not exists getDetail",
         });
       }
       resolve({
-        status: 'OK',
-        message: 'Success getDetail',
+        status: "OK",
+        message: "Success getDetail",
         data: user,
       });
     } catch (e) {

@@ -1,22 +1,22 @@
-const router = require('./router');
-const bodyParser = require('body-parser');
-const cookieParser = require('cookie-parser');
-const cors = require('cors');
+const router = require("./router");
+const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
+const cors = require("cors");
 
-const express = require('express');
-const dotenv = require('dotenv');
-const mongoose = require('mongoose');
-const axios = require('axios');
+const express = require("express");
+const dotenv = require("dotenv");
+const mongoose = require("mongoose");
+const axios = require("axios");
 dotenv.config();
 const app = express();
 // cấu hình kafka
-const { Kafka } = require('kafkajs');
+const { Kafka } = require("kafkajs");
 
 // Cấu hình Kafka
 const kafka = new Kafka({
-  clientId: 'order_service',
-  // brokers: ['localhost:9092'], // Địa chỉ Kafka server
-  brokers: ['kafka:9092'],
+  clientId: "order_service",
+  brokers: ["localhost:9092"], // Địa chỉ Kafka server
+  // brokers: ["kafka:9092"],
 });
 const producer = kafka.producer();
 
@@ -24,9 +24,9 @@ const producer = kafka.producer();
 const connectProducer = async () => {
   try {
     await producer.connect();
-    console.log('Kafka Producer connected');
+    console.log("Kafka Producer connected");
   } catch (error) {
-    console.error('Error connecting Kafka Producer:', error);
+    console.error("Error connecting Kafka Producer:", error);
   }
 };
 connectProducer();
@@ -34,16 +34,17 @@ connectProducer();
 app.locals.producer = producer;
 
 const SERVICE_INFO = {
-  name: 'order_service',
-  host: 'order_service',
-  port: process.env.PORT || 5003,
+  name: "order_service",
+  // host: 'order_service',
+  host: "localhost",
+  port: process.env.PORT || 6003,
   endpoints: [
-    '/api/order/create-order',
-    '/api/order/get-detail-order/:id',
-    '/api/order/admin/get-all-order',
-    '/api/order/cancel-order/:id',
-    '/api/order/get-all-order-user/:id',
-    '/api/order/update-status',
+    "/api/order/create-order",
+    "/api/order/get-detail-order/:id",
+    "/api/order/admin/get-all-order",
+    "/api/order/cancel-order/:id",
+    "/api/order/get-all-order-user/:id",
+    "/api/order/update-status",
   ],
 };
 
@@ -52,12 +53,15 @@ let serviceId = null;
 // Register with API Gateway
 async function registerWithGateway() {
   try {
-    const response = await axios.post(`${process.env.GATEWAY_URL}/register`, SERVICE_INFO);
+    const response = await axios.post(
+      `${process.env.GATEWAY_URL}/register`,
+      SERVICE_INFO
+    );
     serviceId = response.data.serviceId;
-    console.log('Registered with API Gateway, serviceId:', serviceId);
+    console.log("Registered with API Gateway, serviceId:", serviceId);
     startHeartbeat();
   } catch (error) {
-    console.error('Failed to register with API Gateway:', error.message);
+    console.error("Failed to register with API Gateway:", error.message);
     // Thử lại sau 4 giây
     setTimeout(registerWithGateway, 4000);
   }
@@ -69,7 +73,7 @@ function startHeartbeat() {
     try {
       await axios.post(`${process.env.GATEWAY_URL}/heartbeat/${serviceId}`);
     } catch (error) {
-      console.error('Heartbeat failed:', error.message);
+      console.error("Heartbeat failed:", error.message);
       // Thử đăng ký lại nếu heartbeat thất bại
       serviceId = null;
       registerWithGateway();
@@ -78,16 +82,16 @@ function startHeartbeat() {
 }
 
 // Graceful shutdown
-process.on('SIGINT', async () => {
+process.on("SIGINT", async () => {
   // of kafka
   await producer.disconnect();
-  console.log('Kafka Producer disconnected');
+  console.log("Kafka Producer disconnected");
   if (serviceId) {
     try {
       await axios.post(`${process.env.GATEWAY_URL}/unregister/${serviceId}`);
-      console.log('Unregistered from API Gateway');
+      console.log("Unregistered from API Gateway");
     } catch (error) {
-      console.error('Failed to unregister:', error.message);
+      console.error("Failed to unregister:", error.message);
     }
   }
   process.exit(0);
@@ -112,10 +116,10 @@ router(app);
 mongoose
   .connect(`${process.env.MONGO_DB}`)
   .then(() => {
-    console.log('Connect to Database success');
+    console.log("Connect to Database success");
   })
   .catch(() => {
-    console.log('Connect database ERROR');
+    console.log("Connect database ERROR");
   });
 
 // port 4000
